@@ -10,9 +10,6 @@ from concurrent.futures import ThreadPoolExecutor
 from ahrs.filters import Madgwick
 from ahrs.common import Quaternion
 
-# ------------------------------------------------------------
-# Extended Kalman Filter for 2D position tracking
-# ------------------------------------------------------------
 class KalmanFilter2D:
     def __init__(self, dt=0.05, max_velocity=0.5):
         self.dt = dt
@@ -101,9 +98,7 @@ class KalmanFilter2D:
 
     def get_velocity(self):
         return self.x[2:4].flatten()
-# ------------------------------------------------------------
-# Main Mapping Class
-# ------------------------------------------------------------
+
 class Map:
     def __init__(self):
         # IMU / GPS data
@@ -157,9 +152,7 @@ class Map:
         self.gpgga_info = "$GPGGA,"
         self.executor = ThreadPoolExecutor(10)
 
-    # ------------------------------------------------------------------
-    # Asyncio setup (unchanged)
-    # ------------------------------------------------------------------
+    
     async def main(self):
         print("Hi from mapping.py!")
         self.calc_accel_bias()
@@ -188,9 +181,6 @@ class Map:
         asyncio.run_coroutine_threadsafe(self.imu_update(), loop)
         asyncio.run_coroutine_threadsafe(self.gps_update(loop), loop)
 
-    # ------------------------------------------------------------------
-    # GPS conversion helpers
-    # ------------------------------------------------------------------
     def gps_to_local_enu(self, lat, lon):
         """Convert lat/lon to East, North (meters) relative to reference."""
         if self.gps_ref_lat is None or self.gps_ref_lon is None:
@@ -210,9 +200,6 @@ class Map:
         position = degrees + mm_mmmm
         return float(position)   # Return float, not string
 
-    # ------------------------------------------------------------------
-    # GPS Update (with Kalman filter measurement update)
-    # ------------------------------------------------------------------
     async def gps_update(self, loop):
         while True:
             if await self.read_gps(loop):
@@ -271,9 +258,6 @@ class Map:
                 return False
         return False
 
-    # ------------------------------------------------------------------
-    # IMU Update (with Kalman filter prediction)
-    # ------------------------------------------------------------------
     async def imu_update(self):
         while True:
             await self.read_imu()
@@ -322,8 +306,8 @@ class Map:
         raw_mag = np.array(self.icm.magnetic)
         mag = (raw_mag - self.MAG_OFFSET) / self.MAG_SCALE
 
-        # Update orientation (use IMU only for now to avoid mag issues)
-        self.q = self.madgwick.updateIMU(q=self.q, gyr=gyro, acc=accel, dt=dt)
+        # Update quaternion orientation
+        self.q = self.madgwick.updateMARG(q=self.q, gyr=gyro, acc=accel, mag=mag dt=dt)
 
         # World linear acceleration (still contains tilt bias)
         accel_linear_raw = self.world_acceleration(accel, self.q)
@@ -400,9 +384,6 @@ class Map:
                 result[i] = v - np.sign(v) * threshold
         return result
 
-    # ------------------------------------------------------------------
-    # Map creation and placeholder localization (unchanged)
-    # ------------------------------------------------------------------
     def create_simple_map(self, length=10, width=10, resolution=10):
         print(f"Creating a map of size {length}m x {width}m with resolution {resolution}cell/m^2.")
         map_array = np.zeros((int(length*resolution), int(width*resolution)))
@@ -424,9 +405,6 @@ class Map:
     def localize(self, cur_position, map_array, ini_position):
         return np.array([0,0])
 
-# ------------------------------------------------------------------
-# Main entry point
-# ------------------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Lake Roomba Mapping Module')
     parser.add_argument('--map_bool', default=True, type=bool,
