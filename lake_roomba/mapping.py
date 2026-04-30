@@ -20,7 +20,7 @@ class KalmanFilter2D:
         self.P = np.eye(4) * 100.0
 
         self.Q = np.diag([0.01, 0.01, 2.0, 2.0])
-        self.R = np.diag([11.1**2, 11.1**2])   # base GPS noise (meters²)
+        self.R = np.diag([5.55**2, 5.55**2])   # base GPS noise (meters²)
 
         # Outlier rejection threshold (meters)
         self.outlier_threshold = 1.2

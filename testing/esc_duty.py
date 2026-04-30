@@ -1,6 +1,9 @@
 import RPi.GPIO as GPIO
 import time
 
+# NOTE This is a testing file that may be helpful if you need to modulate PWM duty cycle
+# NOTE For modulation of the pure pulse width which the esc prefers, use esc_pwm.py
+
 GPIO.setmode(GPIO.BCM)
 
 pwm_pin = 12 # Pin PWM is controlled on for APISQUEEN ASC
